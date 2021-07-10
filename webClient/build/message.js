@@ -247,6 +247,12 @@ let Maessage = class Maessage extends LitElement {
             case 'KeyF':
                 this.sendCommandbyWebrtc("Minus");
                 break;
+            case 'KeyQ':
+                this.sendCommandbyWebrtc("L");
+                break;
+            case 'KeyE':
+                this.sendCommandbyWebrtc("R");
+                break;
         }
     }
 };
