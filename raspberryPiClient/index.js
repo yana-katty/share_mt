@@ -6,7 +6,6 @@ const WebSocket = require('ws');
 // 実行例
 //sudo node index.js --nsconbin /home/pi/App/nscon/main --url ws://192.168.1.77:8100 --userid myswitch
 program
-    .usage('[options] <file ...>')
     .requiredOption('-b, --nsconbin <nscon bin path>', 'nscon binary path')
     .requiredOption('-u, --url <signaling url>', 'signaling endpoint url')
     .option('-i, --userid <userid>', 'userid')
