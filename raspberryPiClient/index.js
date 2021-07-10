@@ -1,12 +1,13 @@
 const WebRtcManager = require('./webrtc');
 const { spawn } = require('child_process')
 
-const nsconbin = '/home/pi/App/nscon/main'//nscon のバイナリファイル
-const nsconProcess = spawn(nsconbin)
-
-const WebSocket = require('ws');
-const url = 'wss://signaling.xn--48jegik.app';//シグナリングサーバのurl
+const nsconbin = '/home/pi/App/temp/nscon/main'//nscon のバイナリファイル
+const url = 'ws://defaultSignalingEndpoint';//シグナリングサーバのurl
 const userid = 'myswitch' //userid
+
+const nsconProcess = spawn(nsconbin)
+const WebSocket = require('ws');
+
 const ws = new WebSocket(url+'?userid='+userid);
 const webRtcManager = new WebRtcManager(ws, nsconProcess);
 ws.on('open', function open() {
