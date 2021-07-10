@@ -4,8 +4,10 @@ import { customElement, property, query } from 'lit/decorators.js';
 
 @customElement('message-test')
 export class Maessage extends LitElement {
-    static styles = css`p { color: blue }`;
+    defaultSignalingEndpoint = 'ws://defaultSignalingEndpoint';
+    defaultSendUserId = 'myswitch';
 
+    static styles = css`p { color: blue }`;
     @property()
     canTryConnect = true;//接続可能な状態か管理
 
@@ -20,6 +22,7 @@ export class Maessage extends LitElement {
 
     @query('#InputMyUserId', true) InputMyUserIdElement!: HTMLInputElement;
     @query('#InputSendUserId', true) InputSendUserIdElement!: HTMLInputElement;
+    @query('#signalingEndpoint', true) InputsignalingEndpointElement!: HTMLInputElement;
 
     @property()
     nowSignaling = false;//相手とシグナリング可能な状態か
@@ -30,6 +33,16 @@ export class Maessage extends LitElement {
     webRTCChannel: any;
     remoteChannel: any;
     ws: any;
+
+    constructor() {
+        super();
+        window.addEventListener('keydown',
+            async (event) => {
+                if (this.connected && event.code) {
+                    this.keyDownEvent(event.code);
+                }
+            });
+    }
 
     //ws部
     wsConnect(url: string) {
@@ -117,8 +130,9 @@ export class Maessage extends LitElement {
         this.myUserID = this.InputMyUserIdElement.value.trim();// input からユーザidの取得
         this.canTryConnect = false;//false にすることで、input を編集できなく、再度connectできないようにする
 
-        console.log('my user id',this.myUserID);
-        this.ws = await this.wsConnect("ws://localhost:8100/?userid=" + this.myUserID);
+        console.log('my user id', this.myUserID);
+        let signalingEndpoint = this.InputsignalingEndpointElement.value.trim();// input からユーザidの取得
+        this.ws = await this.wsConnect(signalingEndpoint + "/?userid=" + this.myUserID);// / の有無を判定できるように URL インターフェイスを使いたい
         this.ws.onmessage = this.wsOnMessage;
         this.ws.onclose = this.wsOnClose;
 
@@ -190,24 +204,95 @@ export class Maessage extends LitElement {
             
             await this.webRTCConnection.setLocalDescription(remoteAnswer);
     };
-
-
+    async sendCommandbyWebrtc(command: string) {
+        console.log(`send command: ${command}`);
+        let message: any = { eventType: "sendCommand", data: { command: command }}
+        this.webRTCChannel.send(JSON.stringify(message));
+        
+    }
         render() {
-            return html`<section>
+            return html`
+            <p>remote switch beta!</p>
+            <section>
+             <div>
+        signaling endpoint
+        <input type="text" id='signalingEndpoint' ?disabled=${!this.canTryConnect} value=${this.defaultSignalingEndpoint} />
+      </div>
         <div>
         My userid
         <input type="text" id='InputMyUserId' ?disabled=${!this.canTryConnect} value=${this.defaultMyUserId} />
       </div>
        <div>
         Send userid
-        <input type="text" id='InputSendUserId' ?disabled=${!this.canTryConnect} value='myswitch' />
+        <input type="text" id='InputSendUserId' ?disabled=${!this.canTryConnect} value=${this.defaultSendUserId} />
       </div>
   
             <div>
       <button ?disabled="${this.connected || !this.canTryConnect}" @click="${this.connect.bind(this)}">Connect</button>
       <button ?disabled="${!this.connected}" @click="${this.disconnect.bind(this)}">Disconnect</button>
   </div>
+  <br/>
+   <div>
+   <button ?disabled="${!this.connected}" @click="${() => { this.sendCommandbyWebrtc("Left") }}">←</button>
+   <button ?disabled="${!this.connected}" @click="${() => { this.sendCommandbyWebrtc("Up") }}">↑</button>
+   <button ?disabled="${!this.connected}" @click="${() => { this.sendCommandbyWebrtc("Down") }}">↓</button>
+   <button ?disabled="${!this.connected}" @click="${() => { this.sendCommandbyWebrtc("Right") }}">→</button>
+<a>　　　</a>
+   <button ?disabled="${!this.connected}" @click="${() => { this.sendCommandbyWebrtc("A") }}">A</button>
+   <button ?disabled="${!this.connected}" @click="${() => { this.sendCommandbyWebrtc("B") }}">B</button>
+   <button ?disabled="${!this.connected}" @click="${() => { this.sendCommandbyWebrtc("X") }}">X</button>
+   <button ?disabled="${!this.connected}" @click="${() => { this.sendCommandbyWebrtc("Y") }}">Y</button>
+   </div>
+   <br/>
+    <div>
+   <button ?disabled="${!this.connected}" @click="${() => { this.sendCommandbyWebrtc("L") }}">L</button>
+   <button ?disabled="${!this.connected}" @click="${() => { this.sendCommandbyWebrtc("R") }}">R</button>
+   </div>
+    <br/>
+    <div>
+   <button ?disabled="${!this.connected}" @click="${() => { this.sendCommandbyWebrtc("Plus") }}">Plus</button>
+   <button ?disabled="${!this.connected}" @click="${() => { this.sendCommandbyWebrtc("Minus") }}">Minus</button>
+   </div>
+
 
 </section>`;
         }
+    
+    async keyDownEvent(code: string)
+    {
+        switch (code) {
+            case 'KeyA':
+                this.sendCommandbyWebrtc("Left");
+                break
+            case 'KeyW':
+                this.sendCommandbyWebrtc("Up");
+                break
+            case 'KeyS':
+                this.sendCommandbyWebrtc("Down");
+                break
+            case 'KeyD':
+                this.sendCommandbyWebrtc("Right");
+                break
+            case 'Enter':
+                this.sendCommandbyWebrtc("A");
+                break
+            case 'Space':
+                this.sendCommandbyWebrtc("B");
+                break
+            case 'Period':
+                this.sendCommandbyWebrtc("X");
+                break
+            case 'Slash':
+                this.sendCommandbyWebrtc("Y");
+                break
+            case 'KeyG':
+                this.sendCommandbyWebrtc("Plus");
+                break
+            case 'KeyF':
+                this.sendCommandbyWebrtc("Minus");
+                break
+            
+        }
+    }
+    
     }
