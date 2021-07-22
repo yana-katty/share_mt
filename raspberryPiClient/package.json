@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "commander": "^8.0.0",
     "wrtc": "^0.4.7",
     "ws": "^7.5.0"
   }
